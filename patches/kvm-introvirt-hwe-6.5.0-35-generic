@@ -1,4 +1,4 @@
-Description: KVM IntroVirt patch for Ubuntu HWE kernel 6.5.0-28
+Description: KVM IntroVirt patch for Ubuntu HWE kernel 6.5.0-35
  The KVM IntroVirt patch adds introspection support to KVM. This allows
  for inspection of virtual machine memory and manipulation of running processes in-guest.
  This patch is required for compatibility with the user-land IntroVirt library.

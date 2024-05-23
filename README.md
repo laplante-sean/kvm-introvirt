@@ -96,13 +96,17 @@ quilt refresh
 quilt rename kvm-introvirt-hwe-$(uname -r)
 # For non HWE:
 quilt rename kvm-introvirt-$(uname -r)
-# Commit the changes to the patch and push up the branch
+# Update the header to specify the new kernel version we patched
+quilt header -e
 # Build it
 make
 sudo make install
 # Load it
 sudo rmmod kvm-intel kvm
 sudo modprobe kvm-intel
+# Test it - then un-apply the patch
+quilt pop
+# Then Commit the changes to the patch and push up the new branch
 ```
 
 See instructions above for details on debugging if `modprobe` fails and how to uninstall the modified KVM.
