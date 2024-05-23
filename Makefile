@@ -18,7 +18,7 @@ distclean:
 
 all: build
 
-install: build
+install:
 	mkdir -p $(INSTALL_DIR)
 	cp ./kernel/arch/x86/kvm/kvm.ko $(INSTALL_DIR)
 	cp ./kernel/arch/x86/kvm/kvm-intel.ko $(INSTALL_DIR)
