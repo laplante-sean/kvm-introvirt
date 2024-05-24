@@ -106,7 +106,20 @@ sudo rmmod kvm-intel kvm
 sudo modprobe kvm-intel
 # Test it - then un-apply the patch
 quilt pop
-# Then Commit the changes to the patch and push up the new branch
 ```
 
-See instructions above for details on debugging if `modprobe` fails and how to uninstall the modified KVM.
+See instructions above for details on debugging if `modprobe` fails and how to uninstall the modified KVM if needed.
+
+### Finalize new version support
+
+1. Update the debian changelog with `dch`
+
+    ```bash
+    export DEBEMAIL="<your_email>"
+    export DEBFULLNAME="<your name>"
+    dch
+    # Add to the change log and save it
+    ```
+
+1. TODO
+1. Add and commit changes, then push up the new branch (on a fork) and submit a PR
