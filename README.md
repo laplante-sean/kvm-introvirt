@@ -1,56 +1,54 @@
 # kvm-introvirt
 
-IntroVirt KVM module. Currently only supports Intel CPUs.
+IntroVirt KVM module. Intel CPUs have full support. AMD CPUs are lacking support for breakpoints but syscall tracing should work.
 
 ## Installation Instructions
 
-kvm-introvirt can be installed from prebuilt packages using the PPA for Ubuntu bionic and focal.
-Shut down any running VMs first, and then run:
+kvm-introvirt can installed from prebuilt debian packages for Ubuntu 18.04, 22.04, or 24.04. The latest deb packages can be downloaded from the releases.
 
-```bash
-sudo add-apt-repository ppa:srpape/introvirt
-sudo apt-get update
-sudo apt-get install kvm-introvirt
-```
+1. Download the latest `.deb` package for your OS and kernel version
+1. Shut down any running VMs
+1. Change to the download directory
+1. Run: `sudo apt install ./kvm-introvirt-<version>.deb`
 
-You will have to boot into the kernel that the kvm-introvirt module is built for, if the latest package does not match what your system is running or you can build from source.
+If you cannot find a deb package that matches your OS or kernel version, see below how to build and patch yourself. Feel free to submit a PR for a working patch for a new OS/kernel.
 
 ## Build Instructions
 
-Install the dependencies:
+1. Install the dependencies:
 
-```bash
-sudo apt-get install -y bc devscripts quilt git flex bison libssl-dev libelf-dev debhelper
-```
+    ```bash
+    sudo apt-get install -y bc devscripts quilt git flex bison libssl-dev libelf-dev debhelper
+    ```
 
-Install the headers and modules for your kernel
+1. Install the headers and modules for your kernel
 
-```bash
-sudo apt-get install linux-headers-$(uname -r) linux-modules-$(uname -r)
-```
+    ```bash
+    sudo apt-get install linux-headers-$(uname -r) linux-modules-$(uname -r)
+    ```
 
-Clone and build the module (assuming the branch exists for your kernel)
+1. Clone and build the module (assuming the branch exists for your kernel)
 
-```bash
-git clone https://github.com/IntroVirt/kvm-introvirt.git
-# Check if you're running an HWE kernel with: hwe-support-status
-# If HWE supported:
-git checkout ubuntu/$(lsb_release -sc)/Ubuntu-hwe-$(uname -r)
-# Otherwise:
-git checkout ubuntu/$(lsb_release -sc)/Ubuntu-$(uname -r)
-./configure
-make
-sudo make install
-```
+    ```bash
+    git clone https://github.com/IntroVirt/kvm-introvirt.git
+    # Check if you're running an HWE kernel with: hwe-support-status
+    # If HWE supported:
+    git checkout ubuntu/$(lsb_release -sc)/Ubuntu-hwe-$(uname -r)
+    # Otherwise:
+    git checkout ubuntu/$(lsb_release -sc)/Ubuntu-$(uname -r)
+    ./configure
+    make
+    sudo make install
+    ```
 
-The patched version of `kvm.ko`, `kvm-intel.ko`, and `kvm-amd.ko` are installed to `/lib/modules/$(uname -r)/updates/introvirt/`
+    _NOTE: The patched version of `kvm.ko`, `kvm-intel.ko`, and `kvm-amd.ko` are installed to `/lib/modules/$(uname -r)/updates/introvirt/`_
 
-Reload the KVM module
+1. Reload the KVM module
 
-```bash
-sudo rmmod kvm-intel kvm
-sudo modprobe kvm-intel
-```
+    ```bash
+    sudo rmmod kvm-intel kvm
+    sudo modprobe kvm-intel
+    ```
 
 If there are issues/errors loading the modified version of KVM, check `dmesg` for more details. To undo these changes and get the original version of KVM back:
 
@@ -63,7 +61,7 @@ sudo modprobe kvm-intel
 
 ## Supporting a new version (if the branch did not exist)
 
-The kernel module is built based on the branch name. To support a new version, reset the environment and create a new branch. Make sure to branch off of the most recent supported kernel as this makes applying the patch more straightforward.
+The kernel module is built based on the branch name. To support a new version, reset the environment and create a new branch.
 
 ```bash
 # Cleans up the kernel folder
@@ -75,7 +73,7 @@ git clean -x -d -f
 git checkout -b ubuntu/$(lsb_release -sc)/Ubuntu-hwe-$(uname -r)
 # Otherwise:
 git checkout -b ubuntu/$(lsb_release -sc)/Ubuntu-$(uname -r)
-# Run configure to clone the kernel into ./kernel and attempt to apply the patch
+# Run configure to pull the kernel source into ./kernel and attempt to apply the patch
 ./configure
 ```
 
@@ -85,7 +83,7 @@ When running `./configure`, quilt will attempt to apply the patch to the new tar
 quilt push -a -f
 ```
 
-This will apply the parts of the patch that didn't fail, and create `*.rej` files for the parts that failed. Now, manually inspect the `*.rej` files and adapt them to include the changes required for the patch to work. This is a manual process that requires testing/validation that the changes work as intended. Depending on how much the kernel changed, it could be a simple fix, or a more complicated process.
+This will apply the parts of the patch that didn't fail, and create `*.rej` files for the parts that failed. Now, manually inspect the `*.rej` files and adapt them into the source to include the changes required for the patch to work. This is a manual process that requires testing/validation that the changes work as intended. Depending on how much the kernel changed, it could be a simple fix, or a more complicated process.
 
 Once done, or if the patch applied successfully in the first place:
 
@@ -108,7 +106,7 @@ sudo modprobe kvm-intel
 quilt pop
 ```
 
-See instructions above for details on debugging if `modprobe` fails and how to uninstall the modified KVM if needed.
+Use `dmesg` for more information if `modprobe` fails.
 
 ### Finalize new version support
 
