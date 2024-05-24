@@ -18,13 +18,11 @@ If you cannot find a deb package that matches your OS or kernel version, see bel
 1. Install the dependencies:
 
     ```bash
-    sudo apt-get install -y bc devscripts quilt git flex bison libssl-dev libelf-dev debhelper
-    ```
-
-1. Install the headers and modules for your kernel
-
-    ```bash
-    sudo apt-get install linux-headers-$(uname -r) linux-modules-$(uname -r)
+    sudo apt-get install -y \
+        bc devscripts quilt git flex bison libssl-dev libelf-dev debhelper \
+        linux-source-$(uname -r | cut -d'-' -f1) \
+        linux-headers-$(uname -r) \
+        linux-modules-$(uname -r)
     ```
 
 1. Clone and build the module (assuming the branch exists for your kernel)

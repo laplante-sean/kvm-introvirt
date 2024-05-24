@@ -7,14 +7,13 @@
 if [[ ! -d .git ]]
 then
     # Assume this is a package build
-    # .build_vars and config.mk should already be generated
-    . .build_vars
-    if [[ ! -d kernel ]]
+    # config.mk should already be generated
+    if [[ ! -d "kernel" ]]
     then
         echo "Kernel directory is missing! Build will fail."
         exit 1
     fi
-    if [[ ! -f config.mk ]]
+    if [[ ! -f "config.mk" ]]
     then
         echo "config.mk is missing! Build will fail."
         exit 1
@@ -22,59 +21,18 @@ then
     exit 0
 fi
 
-BRANCH=$(git branch --no-color --show-current)
+SOURCE="/usr/src/linux-source-$(uname -r | cut -d'-' -f1).tar.bz2"
 
-# Expects branch naming: ubuntu/$(lsb_release -sc)/Ubuntu-[hwe]-$(uname -r)
-# e.g. ubuntu/jammy/Ubuntu-hwe-6.5.0-28-generic
-# Or for non HWE: ubuntu/jammy/Ubuntu-6.5.0-28-generic
-# The last part of the branch name should be the output of `uname -r`
-DISTRO=$(echo "${BRANCH}" | cut -d'/' -f 1) # e.g. ubuntu
-DISTRO_RELEASE=$(echo "${BRANCH}" | cut -d'/' -f 2) # e.g. jammy
-FULL_KERNEL_VERSION=$(echo "${BRANCH}" | cut -d'/' -f 3) # e.g. Ubuntu-hwe-6.5.0-28-generic
-KERNEL_FLAVOR=$(echo "${FULL_KERNEL_VERSION}" | awk -F'-' '{print $NF}') # e.g. generic
-IS_HWE=$(if ! echo "${BRANCH}" | grep -q "hwe"; then echo "false"; else echo "true";fi)
-GIT_URL="git://git.launchpad.net/~ubuntu-kernel/ubuntu/+source/linux/+git/${DISTRO_RELEASE}"
-KERNEL_RELEASE=$(echo "${BRANCH}" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+[-][0-9]+")  # e.g. 6.5.0-28
-KERNEL_RELEASE_SHORT=$(echo "${KERNEL_RELEASE}" | grep -oE "[0-9]+\.[0-9]+")
-KERNEL_VERSION=$(uname -v | cut -d'#' -f 2 | cut -d'-' -f 1 | tr "~" "_") # e.g. 29_22.04.1
-PATCH_VERSION=$(head -n1 debian/changelog | grep -oE "${KERNEL_RELEASE}\.${KERNEL_VERSION}[-0-9._]*")
+if [[ ! -d "./kernel" ]]; then
+    if [[ ! -f "${SOURCE}" ]]; then
+        echo "Missing linux kernel source ${SOURCE}."
+        echo "Try: sudo apt install linux-source-$(uname -r | cut -d'-' -f1)"
+        exit 1
+    fi
 
-echo "Branch: ${BRANCH}"
-echo "Distro: ${DISTRO}"
-echo "Full Kernel Version: ${FULL_KERNEL_VERSION}"
-echo "Kernel Flavor: ${KERNEL_FLAVOR}"
-echo "Is HWE?: ${IS_HWE}"
-echo "Git URL: ${GIT_URL}"
-echo "Kernel Release: ${KERNEL_RELEASE}"
-echo "Short Kernel Release: ${KERNEL_RELEASE_SHORT}"
-echo "Kernel Version: ${KERNEL_VERSION}"
-echo "Patch Version: ${PATCH_VERSION}"
-
-TAG_FLAVOR=""
-if [[ "${KERNEL_FLAVOR}" != "generic" && -n "${KERNEL_FLAVOR}" ]]; then
-    TAG_FLAVOR="-${KERNEL_FLAVOR}"
-fi
-
-if [[ "${IS_HWE}" == "true" ]]; then
-    HWE="-hwe"
-else
-    HWE=""
-fi
-
-# Construct the git tag we need to clone
-KERNEL_TAG="Ubuntu${TAG_FLAVOR}${HWE}-${KERNEL_RELEASE_SHORT}-${KERNEL_RELEASE}.${KERNEL_VERSION}"
-echo "Git tag to clone: ${KERNEL_TAG}"
-
-if [[ ! -d kernel ]]; then
-    # Clone the kernel into a working directory
-    git clone --branch "${KERNEL_TAG}" --depth 1 "${GIT_URL}" kernel
-elif [[ "$(cd ./kernel && git tag)" != "${KERNEL_TAG}" ]]; then
-    echo "The wrong tag is checked out in the \"kernel\" folder"
-    echo "Use \"make distclean\" to delete the \"kernel\" folder and re-run"
-    echo "./configure to clone the correct tag for your kernel."
-    exit 1
-else
-    echo "Kernel already cloned."
+    mkdir -p ./kernel
+    echo "Extracting kernel (this takes a minute or so)"
+    tar -jxf "${SOURCE}" -C ./kernel --strip-components=1
 fi
 
 if quilt unapplied; then
@@ -88,34 +46,16 @@ if quilt unapplied; then
     fi
 fi
 
-# Erase .build_vars if it exists (or create it empty)
-truncate -s0 .build_vars
-
-# Setup the environment
-echo "DISTRO=${DISTRO}" >> .build_vars
-echo "DISTRO_RELEASE=${DISTRO_RELEASE}" >> .build_vars
-echo "FULL_KERNEL_VERSION=${FULL_KERNEL_VERSION}" >> .build_vars
-echo "KERNEL_FLAVOR=${KERNEL_FLAVOR}" >> .build_vars
-echo "IS_HWE=${IS_HWE}" >> .build_vars
-echo "GIT_URL=${GIT_URL}" >> .build_vars
-echo "KERNEL_RELEASE=${KERNEL_RELEASE}" >> .build_vars
-echo "KERNEL_RELEASE_SHORT=${KERNEL_RELEASE_SHORT}" >> .build_vars
-echo "KERNEL_VERSION=${KERNEL_VERSION}" >> .build_vars
-echo "KERNEL_TAG=${KERNEL_TAG}" >> .build_vars
-echo "PATCH_VERSION=${PATCH_VERSION}" >> .build_vars
-
 truncate -s0 config.mk
-echo "KERNEL_LIB_PATH=/lib/modules/${KERNEL_RELEASE}-${KERNEL_FLAVOR}" >> config.mk
-echo "KERNEL_CONFIG_FILE=/boot/config-${KERNEL_RELEASE}-${KERNEL_FLAVOR}" >> config.mk
-echo "KERNEL_SYMVERS_FILE=/usr/src/linux-headers-${KERNEL_RELEASE}-${KERNEL_FLAVOR}/Module.symvers" >> config.mk
-echo 'INSTALL_DIR=$(DESTDIR)$(KERNEL_LIB_PATH)/updates/introvirt/' >> config.mk
-echo "PATCH_VERSION=${PATCH_VERSION}" >> config.mk
-echo "KERNEL_VERSION_FULLER=${KERNEL_RELEASE}-${KERNEL_FLAVOR}" >> config.mk
+echo "KERNEL_CONFIG_FILE=/boot/config-$(uname -r)" >> config.mk
+echo "KERNEL_SYMVERS_FILE=/usr/src/linux-headers-$(uname -r)/Module.symvers" >> config.mk
+echo "PATCH_VERSION=" >> config.mk
+echo "INSTALL_DIR=/lib/modules/$(uname -r)/updates/introvirt/" >> config.mk
 
 rm -f debian/*.install debian/*.postinst
 
-cp -f debian/kvm-introvirt.install.tpl "debian/kvm-introvirt-${KERNEL_VERSION}${KERNEL_FLAVOR}.install"
-cp -f debian/kvm-introvirt.postinst.tpl "debian/kvm-introvirt-${KERNEL_VERSION}${KERNEL_FLAVOR}.postinst"
+cp -f debian/kvm-introvirt.install.tpl "debian/kvm-introvirt-$(uname -r).install"
+cp -f debian/kvm-introvirt.postinst.tpl "debian/kvm-introvirt-$(uname -r).postinst"
 
 #sed -i "s/[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+\.[0-9]\+/$KERNEL_VERSION_FULL/g" debian/changelog
 #sed -i "s/[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$KERNEL_FLAVOR/$KERNEL_VERSION$KERNEL_FLAVOR/g" debian/control
