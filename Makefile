@@ -45,4 +45,3 @@ package: build
 	cp debpkg/DEBIAN/copyright ./debpkg/usr/share/doc/kvm-introvirt-$(KERNEL_VERSION_FULL)/copyright
 
 	dpkg-deb --build debpkg "dist/$(DEB_NAME)"
-	#rm -rf ./debpkg/lib
