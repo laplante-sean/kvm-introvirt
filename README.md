@@ -17,7 +17,7 @@ If you cannot find a deb package that matches your OS or kernel version, see bel
 
 1. Install the dependencies:
 
-    ```bash
+    ```shell
     sudo apt-get install -y \
         bc devscripts quilt git flex bison libssl-dev libelf-dev debhelper \
         linux-source-$(uname -r | cut -d'-' -f1) \
@@ -27,13 +27,9 @@ If you cannot find a deb package that matches your OS or kernel version, see bel
 
 1. Clone and build the module (assuming the branch exists for your kernel)
 
-    ```bash
+    ```shell
     git clone https://github.com/IntroVirt/kvm-introvirt.git
-    # Check if you're running an HWE kernel with: hwe-support-status
-    # If HWE supported:
-    git checkout ubuntu/$(lsb_release -sc)/Ubuntu-hwe-$(uname -r)
-    # Otherwise:
-    git checkout ubuntu/$(lsb_release -sc)/Ubuntu-$(uname -r)
+    # If configure says the kernel is unsupported, see the next section on supporting a new kernel
     ./configure
     make
     sudo make install
@@ -57,20 +53,16 @@ sudo depmod -a $(uname -r)
 sudo modprobe kvm-intel
 ```
 
-## Supporting a new version (if the branch did not exist)
+## Supporting a new kernel version
 
-The kernel module is built based on the branch name. To support a new version, reset the environment and create a new branch.
+To support a new version, reset the environment and create a new branch.
 
 ```bash
 # Cleans up the kernel folder
 make distclean
 git reset --hard
 git clean -x -d -f
-
-# Check if you're running an HWE kernel with: hwe-support-status
-# If HWE supported (it usually is):
 git checkout -b ubuntu/$(lsb_release -sc)/Ubuntu-hwe-$(uname -r)
-# Otherwise: git checkout -b ubuntu/$(lsb_release -sc)/Ubuntu-$(uname -r)
 
 # Set your email/name to be used in the changelog which is updated by ./configure
 # if those variables are set
