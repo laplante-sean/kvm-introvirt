@@ -7,3 +7,4 @@ kernel/
 *.patch~
 dist/
 debpkg/lib/
+debpkg/DEBIAN/changelog
