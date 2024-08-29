@@ -26,7 +26,7 @@ install:
 	/bin/bash -c 'if [ -f /usr/sbin/depmod ]; then /usr/sbin/depmod -a $(uname -r); fi'
 
 uninstall:
-	rmmod kvm-intel kvm
+	rmmod kvm-intel kvm || true
 	rm -rf $(INSTALL_DIR)
 	depmod -a $(KERNEL_VERSION_FULL)
 	modprobe kvm-intel
