@@ -12,7 +12,7 @@ clean:
 	$(MAKE) -C $(WORKING_DIR)/kernel/ M=arch/x86/kvm/ clean
 
 distclean:
-	rm -rf .pc
+	rm -rf $(WORKING_DIR)/.pc
 	rm -rf $(WORKING_DIR)/kernel/
 	rm -f config.mk
 
