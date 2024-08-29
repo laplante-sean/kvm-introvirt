@@ -33,9 +33,16 @@ uninstall:
 
 package: build
 	mkdir -p dist
-	mkdir -p ./debpkg/$(INSTALL_DIR)
-	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm.ko ./debpkg/$(INSTALL_DIR)
-	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm-intel.ko ./debpkg/$(INSTALL_DIR)
-	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm-amd.ko ./debpkg/$(INSTALL_DIR)
+	mkdir -p ./debpkg$(INSTALL_DIR)
+	mkdir -p ./debpkg/usr/share/doc/kvm-introvirt-$(KERNEL_VERSION_FULL)
+
+	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm.ko ./debpkg$(INSTALL_DIR)
+	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm-intel.ko ./debpkg$(INSTALL_DIR)
+	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm-amd.ko ./debpkg$(INSTALL_DIR)
+
+	cp debpkg/DEBIAN/changelog ./debpkg/usr/share/doc/kvm-introvirt-$(KERNEL_VERSION_FULL)/changelog.Debian
+	gzip ./debpkg/usr/share/doc/kvm-introvirt-$(KERNEL_VERSION_FULL)/changelog.Debian
+	cp debpkg/DEBIAN/copyright ./debpkg/usr/share/doc/kvm-introvirt-$(KERNEL_VERSION_FULL)/copyright
+
 	dpkg-deb --build debpkg "dist/$(DEB_NAME)"
-	rm -rf ./debpkg/lib
+	#rm -rf ./debpkg/lib

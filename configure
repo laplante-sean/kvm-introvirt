@@ -57,13 +57,14 @@ echo "INSTALL_DIR=/lib/modules/$(uname -r)/updates/introvirt/" >> config.mk
 echo "DEB_NAME=kvm-introvirt-${KERNEL_VERSION_FULL}.${LSB_RELEASE}-${PATCH_VERSION}.deb" >> config.mk
 echo "KERNEL_VERSION_FULL=${KERNEL_VERSION_FULL}" >> config.mk
 
-# Remake the .install and .postinst files from templates
-rm -f debpkg/DEBIAN/postinst
+rm -f debpkg/DEBIAN/postinst debpkg/DEBIAN/postrm debpkg/DEBIAN/preinst
 cp -f debpkg/DEBIAN/postinst.tpl debpkg/DEBIAN/postinst
+cp -f debpkg/DEBIAN/preinst.tpl debpkg/DEBIAN/preinst
 cp -f debpkg/DEBIAN/postrm.tpl debpkg/DEBIAN/postrm
 
 # Update the debian control and post install files
 sed -i "s/KERNEL_VERSION_FULL=\"<<<REPLACED_BY_CONFIGURE>>>\"/KERNEL_VERSION_FULL=\"${KERNEL_VERSION_FULL}\"/g" debpkg/DEBIAN/postinst
+sed -i "s/KERNEL_VERSION_FULL=\"<<<REPLACED_BY_CONFIGURE>>>\"/KERNEL_VERSION_FULL=\"${KERNEL_VERSION_FULL}\"/g" debpkg/DEBIAN/preinst
 sed -i "s/KERNEL_VERSION_FULL=\"<<<REPLACED_BY_CONFIGURE>>>\"/KERNEL_VERSION_FULL=\"${KERNEL_VERSION_FULL}\"/g" debpkg/DEBIAN/postrm
 sed -i "s/[0-9]\+\.[0-9]\+\.[0-9]\+\-[0-9]\+-[a-z]\+"/${KERNEL_VERSION_FULL}/g debpkg/DEBIAN/control
 

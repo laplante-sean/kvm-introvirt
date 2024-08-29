@@ -7,4 +7,8 @@ kernel/
 *.patch~
 dist/
 debpkg/lib/
+debpkg/usr/
 debpkg/DEBIAN/changelog
+debpkg/DEBIAN/postrm
+debpkg/DEBIAN/preinst
+debpkg/DEBIAN/postinst

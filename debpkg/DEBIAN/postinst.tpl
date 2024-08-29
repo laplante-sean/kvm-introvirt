@@ -29,7 +29,7 @@ if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-decon
     fi
 fi
 
-RUNNING_KERNEL=$(uname -r)
+RUNNING_KERNEL="$(uname -r)"
 if [ "${RUNNING_KERNEL}" != "${KERNEL_VERSION_FULL}" ]; then
     echo "Modules are not for running kernel. Not reloading."
     exit 0
