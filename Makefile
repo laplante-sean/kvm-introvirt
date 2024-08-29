@@ -25,6 +25,12 @@ install:
 	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm-amd.ko $(INSTALL_DIR)
 	/bin/bash -c 'if [ -f /usr/sbin/depmod ]; then /usr/sbin/depmod -a $(uname -r); fi'
 
+uninstall:
+	rmmod kvm-intel kvm
+	rm -rf $(INSTALL_DIR)
+	depmod -a $(KERNEL_VERSION_FULL)
+	modprobe kvm-intel
+
 package: build
 	mkdir -p dist
 	mkdir -p ./debpkg/$(INSTALL_DIR)
@@ -32,3 +38,4 @@ package: build
 	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm-intel.ko ./debpkg/$(INSTALL_DIR)
 	cp $(WORKING_DIR)/kernel/arch/x86/kvm/kvm-amd.ko ./debpkg/$(INSTALL_DIR)
 	dpkg-deb --build debpkg "dist/$(DEB_NAME)"
+	rm -rf ./debpkg/lib

@@ -2,4 +2,4 @@ kvm-introvirt (6.5.0-35-generic.22.04-1.0.0~jammy1) jammy; urgency=medium
 
   * kvm-introvirt patch 1.0.0 for 6.5.0-35-generic
 
- -- Sean LaPlante <laplantes@ainfosec.com>  Thu Aug 29 05:16:19 PM UTC 2024
+ -- Sean LaPlante <laplantes@ainfosec.com>  Thu Aug 29 06:31:32 PM UTC 2024

@@ -29,8 +29,11 @@ If you cannot find a deb package that matches your OS or kernel version, see bel
 
     ```shell
     git clone https://github.com/IntroVirt/kvm-introvirt.git
+    cd ./kvm-introvirt
+ 
     # If configure says the kernel is unsupported, see the next section on supporting a new kernel
     ./configure
+ 
     make
     sudo make install
     ```

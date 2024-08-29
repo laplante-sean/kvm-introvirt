@@ -55,6 +55,7 @@ echo "KERNEL_SYMVERS_FILE=/usr/src/linux-headers-$(uname -r)/Module.symvers" >> 
 echo "PATCH_VERSION=${PATCH_VERSION}" >> config.mk
 echo "INSTALL_DIR=/lib/modules/$(uname -r)/updates/introvirt/" >> config.mk
 echo "DEB_NAME=kvm-introvirt-${KERNEL_VERSION_FULL}.${LSB_RELEASE}-${PATCH_VERSION}.deb" >> config.mk
+echo "KERNEL_VERSION_FULL=${KERNEL_VERSION_FULL}" >> config.mk
 
 # Remake the .install and .postinst files from templates
 rm -f debpkg/DEBIAN/postinst
