@@ -66,11 +66,17 @@ The kernel module is built based on the branch name. To support a new version, r
 make distclean
 git reset --hard
 git clean -x -d -f
+
 # Check if you're running an HWE kernel with: hwe-support-status
-# If HWE supported:
+# If HWE supported (it usually is):
 git checkout -b ubuntu/$(lsb_release -sc)/Ubuntu-hwe-$(uname -r)
-# Otherwise:
-git checkout -b ubuntu/$(lsb_release -sc)/Ubuntu-$(uname -r)
+# Otherwise: git checkout -b ubuntu/$(lsb_release -sc)/Ubuntu-$(uname -r)
+
+# Set your email/name to be used in the changelog which is updated by ./configure
+# if those variables are set
+export DEBEMAIL="<your_email>"
+export DEBFULLNAME="<your name>"
+
 # Run configure to pull the kernel source into ./kernel and attempt to apply the patch
 ./configure
 ```
@@ -96,6 +102,9 @@ quilt rename kvm-introvirt-$(uname -r)
 quilt header -e
 # Build it
 make
+# Build the .deb package
+make package
+# Install the modified KVM kernel module
 sudo make install
 # Load it
 sudo rmmod kvm-intel kvm
@@ -108,14 +117,4 @@ Use `dmesg` for more information if `modprobe` fails.
 
 ### Finalize new version support
 
-1. Update the debian changelog with `dch`
-
-    ```bash
-    export DEBEMAIL="<your_email>"
-    export DEBFULLNAME="<your name>"
-    dch
-    # Add to the change log and save it
-    ```
-
-1. TODO
 1. Add and commit changes, then push up the new branch (on a fork) and submit a PR

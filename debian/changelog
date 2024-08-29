@@ -1,4 +1,4 @@
-kvm-introvirt (6.5.0-35.22.04.1-0.57.0~jammy1ubuntu1) UNRELEASED; urgency=medium
+kvm-introvirt (6.5.0-35.22.04.1-0.57.0~jammy1) jammy; urgency=medium
 
   * Initial build for 6.5.0-35
 

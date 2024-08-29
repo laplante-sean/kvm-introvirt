@@ -1,5 +1,7 @@
 #!/bin/bash
 
+KERNEL_VERSION_FULL="<<<REPLACED_BY_CONFIGURE>>>"
+
 function check_module_loaded() {
     grep -q "$1 " /proc/modules
     return $?
@@ -22,13 +24,13 @@ function unload_module() {
 }
 
 if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
-    if [ -e /boot/System.map-6.5.0-28-generic ]; then
-        depmod -a -F /boot/System.map-6.5.0-35-generic 6.5.0-35-generic || true
+    if [ -e "/boot/System.map-${KERNEL_VERSION_FULL}" ]; then
+        depmod -a -F "/boot/System.map-${KERNEL_VERSION_FULL}" "${KERNEL_VERSION_FULL}" || true
     fi
 fi
 
 RUNNING_KERNEL=$(uname -r)
-if [ "${RUNNING_KERNEL}" != "6.5.0-35-generic" ]; then
+if [ "${RUNNING_KERNEL}" != "${KERNEL_VERSION_FULL}" ]; then
     echo "Modules are not for running kernel. Not reloading."
     exit 0
 fi

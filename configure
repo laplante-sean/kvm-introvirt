@@ -4,6 +4,8 @@
 # NOTE: We're assuming Ubuntu for now
 #
 
+INTROVIRT_VERSION="0.57.4"
+
 if [[ ! -d .git ]]
 then
     # Assume this is a package build
@@ -26,6 +28,7 @@ SOURCE="/usr/src/linux-source-$(uname -r | cut -d'-' -f1).tar.bz2"
 if [[ ! -d "./kernel" ]]; then
     if [[ ! -f "${SOURCE}" ]]; then
         echo "Missing linux kernel source ${SOURCE}."
+        echo "You need the source package for the running kernel."
         echo "Try: sudo apt install linux-source-$(uname -r | cut -d'-' -f1)"
         exit 1
     fi
@@ -57,8 +60,24 @@ rm -f debian/*.install debian/*.postinst
 cp -f debian/kvm-introvirt.install.tpl "debian/kvm-introvirt-$(uname -r).install"
 cp -f debian/kvm-introvirt.postinst.tpl "debian/kvm-introvirt-$(uname -r).postinst"
 
-#sed -i "s/[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+\.[0-9]\+/$KERNEL_VERSION_FULL/g" debian/changelog
-#sed -i "s/[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$KERNEL_FLAVOR/$KERNEL_VERSION$KERNEL_FLAVOR/g" debian/control
-#sed -i "s/[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$KERNEL_FLAVOR/$KERNEL_VERSION$KERNEL_FLAVOR/g" debian/*.postinst
+# Update the debian control and post install files
+KERNEL_VERSION_FULL="$(uname -r)"
+sed -i "s/KERNEL_VERSION_FULL=\"<<<REPLACED_BY_CONFIGURE>>>\"/${KERNEL_VERSION_FULL}/g" debian/*.postinst
+sed -i "s/[0-9]\+\.[0-9]\+\.[0-9]\+\-[0-9]\+-[a-z]\+"/${KERNEL_VERSION_FULL}/g debian/control
+
+# Build the changelog
+email="${DEBEMAIL:=laplantes@ainfosec.com}"
+fullname="${DEBFULLNAME:=Sean LaPlante}"
+lsb_release=$(lsb_release -a | grep "Release:" | cut -d ':' -f 2 | xargs)
+codename=$(lsb_release -c | cut -d: -f2 | xargs)
+
+truncate -s0 debian/changelog
+cat << EOF > debian/changelog
+kvm-introvirt (${KERNEL_VERSION_FULL}.${lsb_release}-${INTROVIRT_VERSION}~${codename}1) ${codename}; urgency=medium
+
+  * kvm-introvirt build for ${KERNEL_VERSION_FULL}
+
+ -- ${fullname} <${email}>  $(date -u)
+EOF
 
 exit 0
