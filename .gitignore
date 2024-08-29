@@ -6,3 +6,4 @@ kernel/
 *.gz
 *.patch~
 dist/
+debpkg/lib/
