@@ -8,7 +8,6 @@ LSB_RELEASE=$(lsb_release -sr)
 LSB_CODENAME=$(lsb_release -sc)
 PATCH_DIR="ubuntu/$(lsb_release -sc)/hwe/$(uname -r)"
 PATCH_VERSION="1.0.0"
-SOURCE="/usr/src/linux-source-$(uname -r | cut -d'-' -f1).tar.bz2"
 EMAIL="${DEBEMAIL:=laplantes@ainfosec.com}"
 FULLNAME="${DEBFULLNAME:=Sean LaPlante}"
 
@@ -21,17 +20,10 @@ fi
 pushd ${PATCH_DIR} > /dev/null
 
 if [[ ! -d "./kernel" ]]; then
-    if [[ ! -f "${SOURCE}" ]]; then
-        echo "Missing linux kernel source ${SOURCE}."
-        echo "You need the source package for the running kernel."
-        echo "Try: sudo apt install linux-source-$(uname -r | cut -d'-' -f1)"
-        popd > /dev/null
-        exit 1
-    fi
-
-    mkdir -p ./kernel
-    echo "Extracting kernel (this takes a minute or so)"
-    tar -jxf "${SOURCE}" -C ./kernel --strip-components=1
+    echo "Getting kernel source. This could take a bit..."
+    apt source linux-image-unsigned-$(uname -r)
+    mv linux*$(uname -r | cut -d- -f 1)/ kernel
+    rm -f linux*.dsc linux*.tar.gz linux*.diff.gz
 fi
 
 if quilt unapplied; then

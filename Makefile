@@ -2,7 +2,7 @@ include config.mk
 
 WORKING_DIR ?= "."
 
-build:
+module:
 	cp $(KERNEL_CONFIG_FILE) $(WORKING_DIR)/kernel/.config
 	$(MAKE) -C $(WORKING_DIR)/kernel/ oldconfig scripts prepare modules_prepare
 	cp $(KERNEL_SYMVERS_FILE) $(WORKING_DIR)/kernel/
@@ -14,9 +14,10 @@ clean:
 distclean:
 	rm -rf $(WORKING_DIR)/.pc
 	rm -rf $(WORKING_DIR)/kernel/
+	rm -rf ./dist
 	rm -f config.mk
 
-all: build
+all: module
 
 install:
 	mkdir -p $(INSTALL_DIR)
@@ -31,7 +32,7 @@ uninstall:
 	depmod -a $(KERNEL_VERSION_FULL)
 	modprobe kvm-intel
 
-package: build
+package: module
 	mkdir -p dist
 	mkdir -p ./debpkg$(INSTALL_DIR)
 	mkdir -p ./debpkg/usr/share/doc/kvm-introvirt-$(KERNEL_VERSION_FULL)
@@ -45,3 +46,6 @@ package: build
 	cp debpkg/DEBIAN/copyright ./debpkg/usr/share/doc/kvm-introvirt-$(KERNEL_VERSION_FULL)/copyright
 
 	dpkg-deb --build debpkg "dist/$(DEB_NAME)"
+
+	rm -rf ./debpkg/usr
+	rm -rf ./debpkg/lib

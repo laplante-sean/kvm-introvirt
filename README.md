@@ -15,14 +15,20 @@ If you cannot find a deb package that matches your OS or kernel version, see bel
 
 ## Build Instructions
 
+1. Edit `/etc/apt/sources.list` to enable the primary `deb-src` repos for your distribution (More info here: https://wiki.ubuntu.com/Kernel/BuildYourOwnKernel)
 1. Install the dependencies:
 
     ```shell
     sudo apt-get install -y \
         bc devscripts quilt git flex bison libssl-dev libelf-dev debhelper \
+        libncurses-dev gawk openssl dkms libudev-dev libpci-dev libiberty-dev \
+        autoconf llvm \
         linux-source-$(uname -r | cut -d'-' -f1) \
         linux-headers-$(uname -r) \
         linux-modules-$(uname -r)
+
+    # Need to make sure deb-src repos are enabled
+    sudo apt build-dep linux linux-image-unsigned-$(uname -r)
     ```
 
 1. Clone and build the module (assuming the branch exists for your kernel)
@@ -67,18 +73,26 @@ git reset --hard
 git clean -x -d -f
 git checkout -b ubuntu/$(lsb_release -sc)/Ubuntu-hwe-$(uname -r)
 
+# Make the directory for the patch
+mkdir -p ubuntu/$(lsb_release -sc)/hwe/$(uname -r)
+
+# Copy the most recent patch directory from a prior kernel
+# Whichever kernel is closest to the one you're patching
+cp -r ubuntu/<codename>/hwe/<kernel>/patches ubuntu/$(lsb_release -sc)/hwe/$(uname -r)/
+
 # Set your email/name to be used in the changelog which is updated by ./configure
 # if those variables are set
 export DEBEMAIL="<your_email>"
 export DEBFULLNAME="<your name>"
 
-# Run configure to pull the kernel source into ./kernel and attempt to apply the patch
+# Run configure to pull the kernel source into ./kernel and attempt to apply the old patch
 ./configure
 ```
 
 When running `./configure`, quilt will attempt to apply the patch to the new target kernel. If the patch does not cleanly apply, you will need to update it. When the patch fails to apply, we need to force apply what we can:
 
 ```bash
+cd ubuntu/$(lsb_release -sc)/hwe/$(uname -r)
 quilt push -a -f
 ```
 
@@ -89,12 +103,14 @@ Once done, or if the patch applied successfully in the first place:
 ```bash
 # Update the .patch file with the changes (if any) to the patch
 quilt refresh
-# Rename the patch for this kernel. For HWE:
+# Rename the patch for this kernel.
 quilt rename kvm-introvirt-hwe-$(uname -r)
-# For non HWE:
-quilt rename kvm-introvirt-$(uname -r)
 # Update the header to specify the new kernel version we patched
 quilt header -e
+
+# Change back to the repo root
+cd ../../../../
+
 # Build it
 make
 # Build the .deb package
@@ -104,8 +120,11 @@ sudo make install
 # Load it
 sudo rmmod kvm-intel kvm
 sudo modprobe kvm-intel
+
 # Test it - then un-apply the patch
+cd ubuntu/$(lsb_release -sc)/hwe/$(uname -r)
 quilt pop
+cd -
 ```
 
 Use `dmesg` for more information if `modprobe` fails.
